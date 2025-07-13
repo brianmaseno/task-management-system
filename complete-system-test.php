@@ -21,18 +21,18 @@ try {
     echo "\n1. Testing database connection...\n";
     $db = SimpleConnection::getInstance();
     echo "✓ Database connection successful\n";
-    
+
     // Test 2: Initialize Admin User
     echo "\n2. Creating admin user...\n";
     $userModel = new SimpleUser();
-    
+
     $adminData = [
         'name' => 'Admin User',
         'email' => 'admin@taskmaster.com',
         'password' => 'admin123',
         'role' => 'admin'
     ];
-    
+
     $adminResult = $userModel->create($adminData);
     if ($adminResult['success']) {
         echo "✓ Admin user created with ID: " . $adminResult['userId'] . "\n";
@@ -41,13 +41,13 @@ try {
         echo "⚠ Admin already exists or creation failed: " . $adminResult['message'] . "\n";
         $existingAdmin = $userModel->findByEmail('admin@taskmaster.com');
         if ($existingAdmin) {
-            $adminId = (string)$existingAdmin['_id'];
+            $adminId = (string) $existingAdmin['_id'];
             echo "✓ Using existing admin with ID: " . $adminId . "\n";
         } else {
             throw new Exception('Could not create or find admin user');
         }
     }
-    
+
     // Test 3: Create Test Users
     echo "\n3. Creating test users...\n";
     $testUsers = [
@@ -64,7 +64,7 @@ try {
             'role' => 'user'
         ]
     ];
-    
+
     $userIds = [];
     foreach ($testUsers as $userData) {
         $userResult = $userModel->create($userData);
@@ -74,17 +74,17 @@ try {
         } else {
             $existingUser = $userModel->findByEmail($userData['email']);
             if ($existingUser) {
-                $userId = (string)$existingUser['_id'];
+                $userId = (string) $existingUser['_id'];
                 echo "⚠ User already exists: " . $userData['name'] . " (ID: " . $userId . ")\n";
                 $userIds[] = $userId;
             }
         }
     }
-    
+
     // Test 4: Create Sample Tasks
     echo "\n4. Creating sample tasks...\n";
     $taskModel = new SimpleTask();
-    
+
     $sampleTasks = [
         [
             'title' => 'Complete Project Documentation',
@@ -111,7 +111,7 @@ try {
             'createdBy' => $adminId
         ]
     ];
-    
+
     foreach ($sampleTasks as $taskData) {
         $taskResult = $taskModel->create($taskData);
         if ($taskResult['success']) {
@@ -120,16 +120,16 @@ try {
             echo "✗ Failed to create task: " . $taskData['title'] . "\n";
         }
     }
-    
+
     // Test 5: Verify Data Retrieval
     echo "\n5. Testing data retrieval...\n";
-    
+
     $allUsers = $userModel->getAll();
     echo "✓ Total users in system: " . count($allUsers) . "\n";
-    
+
     $allTasks = $taskModel->getAll();
     echo "✓ Total tasks in system: " . count($allTasks) . "\n";
-    
+
     // Test 6: Authentication Test
     echo "\n6. Testing authentication...\n";
     $authController = new AuthController();
@@ -142,7 +142,7 @@ try {
     } else {
         echo "✗ Admin authentication failed: " . ($authResult['message'] ?? 'Unknown error') . "\n";
     }
-    
+
     // Test 7: Email Service Check
     echo "\n7. Testing email service configuration...\n";
     $emailService = new EmailService();
@@ -157,14 +157,14 @@ try {
         echo "  2. Use Gmail App Password (not regular password)\n";
         echo "  3. Restart the server\n";
     }
-    
+
     echo "\n=== System Initialization Complete! ===\n";
     echo "\n🎉 TaskMaster Pro is ready to use!\n";
     echo "\n📋 Available Accounts:\n";
     echo "👨‍💼 Admin: admin@taskmaster.com / admin123\n";
     echo "👤 User 1: john@example.com / user123\n";
     echo "👤 User 2: jane@example.com / user123\n";
-    
+
     echo "\n🌐 Access the application at: http://localhost:8000/app.html\n";
     echo "\n✨ Features Available:\n";
     echo "  ✓ User registration and authentication\n";
@@ -176,19 +176,19 @@ try {
     echo "  ✓ System logging and monitoring\n";
     echo "  ✓ Email notifications (when configured)\n";
     echo "  ✓ Responsive UI with Bootstrap\n";
-    
+
     echo "\n🔧 Admin Features:\n";
     echo "  - Full user CRUD operations\n";
     echo "  - Task assignment to multiple users\n";
     echo "  - System log access and management\n";
     echo "  - Complete task overview\n";
-    
+
     echo "\n👤 User Features:\n";
     echo "  - View assigned tasks\n";
     echo "  - Update task status\n";
     echo "  - Dashboard with task statistics\n";
     echo "  - Email notifications for new assignments\n";
-    
+
 } catch (Exception $e) {
     echo "\n✗ System test failed: " . $e->getMessage() . "\n";
     echo "Error details: " . $e->getTraceAsString() . "\n";

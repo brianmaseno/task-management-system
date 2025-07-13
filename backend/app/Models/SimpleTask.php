@@ -16,7 +16,7 @@ class SimpleTask
     public function create($taskData)
     {
         $result = $this->db->insertTask($taskData);
-        
+
         // Return with expected key name
         return [
             'success' => $result['success'],

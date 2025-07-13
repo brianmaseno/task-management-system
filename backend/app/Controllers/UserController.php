@@ -13,56 +13,56 @@ class UserController
     {
         $this->userModel = new SimpleUser();
     }
-    
+
     /**
      * Handle HTTP request to get all users (Admin only)
      */
     public function handleGetUsers()
     {
         SessionService::requireAdmin();
-        
+
         $result = $this->getUsers();
         echo json_encode($result);
     }
-    
+
     /**
      * Handle HTTP request to create user (Admin only)
      */
     public function handleCreateUser()
     {
         SessionService::requireAdmin();
-        
+
         $input = json_decode(file_get_contents('php://input'), true);
         $result = $this->createUser($input);
-        
+
         http_response_code($result['success'] ? 201 : 400);
         echo json_encode($result);
     }
-    
+
     /**
      * Handle HTTP request to update user (Admin only)
      */
     public function handleUpdateUser()
     {
         SessionService::requireAdmin();
-        
+
         $input = json_decode(file_get_contents('php://input'), true);
         $result = $this->updateUser($input);
-        
+
         http_response_code($result['success'] ? 200 : 400);
         echo json_encode($result);
     }
-    
+
     /**
      * Handle HTTP request to delete user (Admin only)
      */
     public function handleDeleteUser()
     {
         SessionService::requireAdmin();
-        
+
         $input = json_decode(file_get_contents('php://input'), true);
         $result = $this->deleteUser($input);
-        
+
         http_response_code($result['success'] ? 200 : 400);
         echo json_encode($result);
     }
@@ -71,12 +71,12 @@ class UserController
     {
         try {
             $users = $this->userModel->getAll();
-            
+
             // Convert ObjectIds to strings and remove passwords
             $formattedUsers = [];
             foreach ($users as $user) {
                 $formattedUser = [
-                    '_id' => (string)$user->_id,
+                    '_id' => (string) $user->_id,
                     'name' => $user->name,
                     'email' => $user->email,
                     'role' => $user->role ?? 'user',

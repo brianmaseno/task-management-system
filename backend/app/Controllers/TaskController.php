@@ -53,20 +53,21 @@ class TaskController
         } catch (\Exception $e) {
             return ['success' => false, 'message' => 'Failed to fetch tasks: ' . $e->getMessage()];
         }
-    }    public function getAllTasks()
+    }
+    public function getAllTasks()
     {
         try {
             $tasks = $this->taskModel->getAll();
-            
+
             // Convert tasks to proper format
             $formattedTasks = [];
             foreach ($tasks as $task) {
                 $formattedTask = [
-                    '_id' => (string)$task->_id,
+                    '_id' => (string) $task->_id,
                     'title' => $task->title ?? '',
                     'description' => $task->description ?? '',
                     'status' => $task->status ?? 'Pending',
-                    'assigned_to' => (string)$task->assigned_to,
+                    'assigned_to' => (string) $task->assigned_to,
                     'deadline' => isset($task->deadline) ? $task->deadline->toDateTime()->format('Y-m-d H:i:s') : '',
                     'created_at' => isset($task->created_at) ? $task->created_at->toDateTime()->format('Y-m-d H:i:s') : '',
                     'updated_at' => isset($task->updated_at) ? $task->updated_at->toDateTime()->format('Y-m-d H:i:s') : ''

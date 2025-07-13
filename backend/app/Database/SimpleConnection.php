@@ -120,7 +120,7 @@ class SimpleConnection
     {
         $query = new Query([]);
         $cursor = $this->manager->executeQuery($this->databaseName . '.users', $query);
-        
+
         return $cursor->toArray();
     }
 
@@ -129,24 +129,27 @@ class SimpleConnection
         try {
             $bulk = new BulkWrite();
             $objectId = new ObjectId($userId);
-            
+
             $updateData = ['updated_at' => new UTCDateTime()];
-            
+
             // Only add fields that are provided
-            if (isset($userData['name'])) $updateData['name'] = $userData['name'];
-            if (isset($userData['email'])) $updateData['email'] = $userData['email'];
-            if (isset($userData['role'])) $updateData['role'] = $userData['role'];
+            if (isset($userData['name']))
+                $updateData['name'] = $userData['name'];
+            if (isset($userData['email']))
+                $updateData['email'] = $userData['email'];
+            if (isset($userData['role']))
+                $updateData['role'] = $userData['role'];
             if (isset($userData['password'])) {
                 $updateData['password'] = password_hash($userData['password'], PASSWORD_DEFAULT);
             }
-            
+
             $bulk->update(
                 ['_id' => $objectId],
                 ['$set' => $updateData]
             );
-            
+
             $result = $this->manager->executeBulkWrite($this->databaseName . '.users', $bulk);
-            
+
             return $result->getModifiedCount() > 0;
         } catch (\Exception $e) {
             return false;
@@ -158,11 +161,11 @@ class SimpleConnection
         try {
             $bulk = new BulkWrite();
             $objectId = new ObjectId($userId);
-            
+
             $bulk->delete(['_id' => $objectId]);
-            
+
             $result = $this->manager->executeBulkWrite($this->databaseName . '.users', $bulk);
-            
+
             return $result->getDeletedCount() > 0;
         } catch (\Exception $e) {
             return false;
@@ -172,7 +175,7 @@ class SimpleConnection
     public function insertTask($taskData)
     {
         $bulk = new BulkWrite();
-        
+
         $document = [
             '_id' => new ObjectId(),
             'title' => $taskData['title'],
@@ -183,14 +186,14 @@ class SimpleConnection
             'created_at' => new UTCDateTime(),
             'updated_at' => new UTCDateTime()
         ];
-        
+
         $bulk->insert($document);
-        
+
         $result = $this->manager->executeBulkWrite($this->databaseName . '.tasks', $bulk);
-        
+
         return [
             'success' => $result->getInsertedCount() > 0,
-            'id' => (string)$document['_id']
+            'id' => (string) $document['_id']
         ];
     }
 
@@ -198,7 +201,7 @@ class SimpleConnection
     {
         $query = new Query([]);
         $cursor = $this->manager->executeQuery($this->databaseName . '.tasks', $query);
-        
+
         return $cursor->toArray();
     }
 
@@ -207,22 +210,27 @@ class SimpleConnection
         try {
             $bulk = new BulkWrite();
             $objectId = new ObjectId($taskId);
-            
+
             $updateData = ['updated_at' => new UTCDateTime()];
-            
-            if (isset($taskData['title'])) $updateData['title'] = $taskData['title'];
-            if (isset($taskData['description'])) $updateData['description'] = $taskData['description'];
-            if (isset($taskData['assigned_to'])) $updateData['assigned_to'] = new ObjectId($taskData['assigned_to']);
-            if (isset($taskData['deadline'])) $updateData['deadline'] = new UTCDateTime(strtotime($taskData['deadline']) * 1000);
-            if (isset($taskData['status'])) $updateData['status'] = $taskData['status'];
-            
+
+            if (isset($taskData['title']))
+                $updateData['title'] = $taskData['title'];
+            if (isset($taskData['description']))
+                $updateData['description'] = $taskData['description'];
+            if (isset($taskData['assigned_to']))
+                $updateData['assigned_to'] = new ObjectId($taskData['assigned_to']);
+            if (isset($taskData['deadline']))
+                $updateData['deadline'] = new UTCDateTime(strtotime($taskData['deadline']) * 1000);
+            if (isset($taskData['status']))
+                $updateData['status'] = $taskData['status'];
+
             $bulk->update(
                 ['_id' => $objectId],
                 ['$set' => $updateData]
             );
-            
+
             $result = $this->manager->executeBulkWrite($this->databaseName . '.tasks', $bulk);
-            
+
             return $result->getModifiedCount() > 0;
         } catch (\Exception $e) {
             return false;
@@ -234,11 +242,11 @@ class SimpleConnection
         try {
             $bulk = new BulkWrite();
             $objectId = new ObjectId($taskId);
-            
+
             $bulk->delete(['_id' => $objectId]);
-            
+
             $result = $this->manager->executeBulkWrite($this->databaseName . '.tasks', $bulk);
-            
+
             return $result->getDeletedCount() > 0;
         } catch (\Exception $e) {
             return false;

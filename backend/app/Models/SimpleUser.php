@@ -19,7 +19,7 @@ class SimpleUser
         $userData['password'] = password_hash($userData['password'], PASSWORD_DEFAULT);
 
         $result = $this->db->insertUser($userData);
-        
+
         // Return consistent structure
         return [
             'success' => $result['success'],

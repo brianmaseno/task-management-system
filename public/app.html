@@ -434,7 +434,8 @@
                                                         <td>{{ user.name }}</td>
                                                         <td>{{ user.email }}</td>
                                                         <td>
-                                                            <span :class="'badge bg-' + (user.role === 'admin' ? 'danger' : 'primary')">
+                                                            <span
+                                                                :class="'badge bg-' + (user.role === 'admin' ? 'danger' : 'primary')">
                                                                 {{ user.role }}
                                                             </span>
                                                         </td>
@@ -496,7 +497,8 @@
                                                         <td>{{ getUserName(task.assigned_to) }}</td>
                                                         <td>{{ formatDate(task.deadline) }}</td>
                                                         <td>
-                                                            <span :class="'badge bg-' + (task.status === 'Completed' ? 'success' : task.status === 'In Progress' ? 'warning' : 'secondary')">
+                                                            <span
+                                                                :class="'badge bg-' + (task.status === 'Completed' ? 'success' : task.status === 'In Progress' ? 'warning' : 'secondary')">
                                                                 {{ task.status }}
                                                             </span>
                                                         </td>
@@ -581,7 +583,7 @@
         </div>
 
         <!-- Modals -->
-        
+
         <!-- Create/Edit User Modal -->
         <div class="modal fade" id="userModal" tabindex="-1" v-if="showCreateUserModal || showEditUserModal">
             <div class="modal-dialog">
@@ -605,9 +607,9 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Password</label>
-                                <input type="password" class="form-control" v-model="userForm.password" 
-                                       :required="!showEditUserModal" 
-                                       :placeholder="showEditUserModal ? 'Leave blank to keep current password' : ''">
+                                <input type="password" class="form-control" v-model="userForm.password"
+                                    :required="!showEditUserModal"
+                                    :placeholder="showEditUserModal ? 'Leave blank to keep current password' : ''">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Role</label>
@@ -648,7 +650,8 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Description</label>
-                                <textarea class="form-control" rows="3" v-model="taskForm.description" required></textarea>
+                                <textarea class="form-control" rows="3" v-model="taskForm.description"
+                                    required></textarea>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Assign To</label>
@@ -792,7 +795,7 @@
 
                     async loadUserTasks() {
                         try {
-                            const response = await axios.post('index.php', { 
+                            const response = await axios.post('index.php', {
                                 action: 'getUserTasks',
                                 userId: this.currentUser._id || this.currentUser.id
                             });
@@ -966,7 +969,7 @@
                         this.isLoading = true;
                         try {
                             const userData = { ...this.userForm };
-                            
+
                             // For edit mode, rename 'id' to 'userId' and remove empty password
                             if (this.showEditUserModal) {
                                 userData.userId = userData.id;
@@ -975,12 +978,12 @@
                                     delete userData.password;
                                 }
                             }
-                            
+
                             const response = await axios.post('index.php', {
                                 action: this.showEditUserModal ? 'updateUser' : 'createUser',
                                 ...userData
                             });
-                            
+
                             if (response.data.success) {
                                 this.showAlert('User saved successfully!', 'success');
                                 await this.loadUsers(); // Wait for reload to complete
@@ -997,14 +1000,14 @@
                     },
                     async deleteUser(userId) {
                         if (!confirm('Are you sure you want to delete this user?')) return;
-                        
+
                         this.isLoading = true;
                         try {
                             const response = await axios.post('index.php', {
                                 action: 'deleteUser',
                                 userId: userId
                             });
-                            
+
                             if (response.data.success) {
                                 this.showAlert('User deleted successfully!', 'success');
                                 await this.loadUsers(); // Wait for reload to complete
@@ -1057,7 +1060,7 @@
                     async saveTask() {
                         this.isLoading = true;
                         try {
-                            const taskData = { 
+                            const taskData = {
                                 action: this.showEditTaskModal ? 'updateTask' : 'createTask',
                                 title: this.taskForm.title,
                                 description: this.taskForm.description,
@@ -1065,13 +1068,13 @@
                                 deadline: this.taskForm.deadline,
                                 status: this.taskForm.status
                             };
-                            
+
                             if (this.showEditTaskModal) {
                                 taskData.taskId = this.taskForm.id;
                             }
-                            
+
                             const response = await axios.post('index.php', taskData);
-                            
+
                             if (response.data.success) {
                                 this.showAlert('Task saved successfully!', 'success');
                                 this.loadTasks();
@@ -1088,14 +1091,14 @@
                     },
                     async deleteTask(taskId) {
                         if (!confirm('Are you sure you want to delete this task?')) return;
-                        
+
                         this.isLoading = true;
                         try {
                             const response = await axios.post('index.php', {
                                 action: 'deleteTask',
                                 taskId: taskId
                             });
-                            
+
                             if (response.data.success) {
                                 this.showAlert('Task deleted successfully!', 'success');
                                 this.loadTasks();
@@ -1132,7 +1135,7 @@
                     },
                     async clearLogs() {
                         if (!confirm('Are you sure you want to clear the logs?')) return;
-                        
+
                         this.isLoading = true;
                         try {
                             const response = await axios.post('index.php', { action: 'clearLogs' });
@@ -1152,16 +1155,16 @@
                     showAlert(message, type = 'success') {
                         // Create and show Bootstrap alert
                         const alertContainer = document.getElementById('alert-container') || this.createAlertContainer();
-                        
+
                         const alertDiv = document.createElement('div');
                         alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
                         alertDiv.innerHTML = `
                             ${message}
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         `;
-                        
+
                         alertContainer.appendChild(alertDiv);
-                        
+
                         // Auto-dismiss after 5 seconds
                         setTimeout(() => {
                             if (alertDiv.parentNode) {
