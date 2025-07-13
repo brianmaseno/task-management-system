@@ -1,0 +1,30 @@
+{
+    "name": "task-management-system",
+    "version": "1.0.0",
+    "description": "A comprehensive task management system with PHP backend and Vue.js frontend",
+    "main": "public/index.php",
+    "scripts": {
+        "dev": "npm run watch",
+        "build": "npm run production",
+        "watch": "mix watch",
+        "production": "mix --production",
+        "serve": "php -S localhost:8000 -t public"
+    },
+    "keywords": ["task-management", "php", "vue", "mongodb"],
+    "author": "Brian Mayoga",
+    "license": "MIT",
+    "devDependencies": {
+        "laravel-mix": "^6.0.0",
+        "vue": "^3.0.0",
+        "@vue/compiler-sfc": "^3.0.0",
+        "vue-loader": "^17.0.0",
+        "axios": "^0.24.0",
+        "bootstrap": "^5.1.0",
+        "sass": "^1.43.0",
+        "sass-loader": "^12.0.0"
+    },
+    "dependencies": {
+        "vue-router": "^4.0.0",
+        "pinia": "^2.0.0"
+    }
+}

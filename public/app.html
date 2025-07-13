@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskMaster Pro - Task Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .main-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+        }
+
+        .nav-link {
+            color: #ecf0f1 !important;
+            border-radius: 8px;
+            margin: 2px 0;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white !important;
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .table {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .table thead th {
+            background: #f8f9fa;
+            border: none;
+            font-weight: 600;
+        }
+
+        .badge {
+            border-radius: 20px;
+            padding: 0.5em 1em;
+        }
+
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .btn-close {
+            filter: invert(1);
+        }
+
+        /* Log Viewer Styles */
+        .log-container {
+            max-height: 500px;
+            overflow-y: auto;
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+        }
+
+        .log-entry {
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .log-entry:hover {
+            background-color: #f8f9fa;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!-- Login Screen -->
+        <div v-if="!isLoggedIn" class="container-fluid d-flex align-items-center justify-content-center min-vh-100">
+            <div class="login-container p-5">
+                <div class="text-center mb-4">
+                    <i class="fas fa-tasks fa-3x text-primary mb-3"></i>
+                    <h2 class="fw-bold">TaskMaster Pro</h2>
+                    <p class="text-muted">Professional Task Management System</p>
+                </div>
+
+                <!-- Login Form -->
+                <div v-if="!showRegisterForm">
+                    <form @submit.prevent="login">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" v-model="loginForm.email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" v-model="loginForm.password"
+                                required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 mb-3" :disabled="isLoading">
+                            <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                            {{ isLoading ? 'Signing In...' : 'Sign In' }}
+                        </button>
+                    </form>
+                    <div class="text-center">
+                        <p class="mb-0">Don't have an account?
+                            <a href="#" @click="showRegisterForm = true" class="text-primary">Register here</a>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Registration Form -->
+                <div v-if="showRegisterForm">
+                    <form @submit.prevent="register">
+                        <div class="mb-3">
+                            <label for="regName" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="regName" v-model="registerForm.name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="regEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="regEmail" v-model="registerForm.email"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="regPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="regPassword" v-model="registerForm.password"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="regConfirmPassword" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="regConfirmPassword"
+                                v-model="registerForm.confirmPassword" required>
+                            <div v-if="registerForm.confirmPassword && !passwordsMatch" class="text-danger small mt-1">
+                                Passwords do not match
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 mb-3"
+                            :disabled="isLoading || !passwordsMatch">
+                            <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                            {{ isLoading ? 'Creating Account...' : 'Create Account' }}
+                        </button>
+                    </form>
+                    <div class="text-center">
+                        <p class="mb-0">Already have an account?
+                            <a href="#" @click="showRegisterForm = false" class="text-primary">Sign in here</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div v-if="isLoggedIn" class="container-fluid">
+            <div class="row">
+                <!-- Sidebar -->
+                <div class="col-md-2 sidebar p-0">
+                    <div class="p-4">
+                        <h4 class="text-white mb-4">
+                            <i class="fas fa-tasks me-2"></i>TaskMaster Pro
+                        </h4>
+                        <div class="mb-3">
+                            <small class="text-muted">Welcome back,</small><br>
+                            <strong class="text-white">{{ currentUser.name }}</strong><br>
+                            <small class="text-muted">{{ currentUser.role }}</small>
+                        </div>
+                    </div>
+
+                    <nav class="px-3">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a href="#" @click="currentView = 'dashboard'"
+                                    :class="['nav-link', {active: currentView === 'dashboard'}]">
+                                    <i class="fas fa-home me-2"></i>Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="#" @click="currentView = 'tasks'"
+                                    :class="['nav-link', {active: currentView === 'tasks'}]">
+                                    <i class="fas fa-list me-2"></i>My Tasks
+                                </a>
+                            </li>
+                            <li class="nav-item" v-if="isAdmin">
+                                <a href="#" @click="currentView = 'users'"
+                                    :class="['nav-link', {active: currentView === 'users'}]">
+                                    <i class="fas fa-users me-2"></i>Users
+                                </a>
+                            </li>
+                            <li class="nav-item" v-if="isAdmin">
+                                <a href="#" @click="currentView = 'admin-tasks'"
+                                    :class="['nav-link', {active: currentView === 'admin-tasks'}]">
+                                    <i class="fas fa-tasks me-2"></i>All Tasks
+                                </a>
+                            </li>
+                            <li class="nav-item" v-if="isAdmin">
+                                <a href="#" @click="currentView = 'logs'; loadLogs()"
+                                    :class="['nav-link', {active: currentView === 'logs'}]">
+                                    <i class="fas fa-file-alt me-2"></i>System Logs
+                                </a>
+                            </li>
+                            <li class="nav-item mt-4">
+                                <a href="#" @click="logout" class="nav-link">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <!-- Main Content -->
+                <div class="col-md-10">
+                    <div class="main-container m-3">
+                        <div class="p-4">
+                            <!-- Dashboard View -->
+                            <div v-if="currentView === 'dashboard'">
+                                <h1>Welcome, {{ currentUser.name }}!</h1>
+                                <p class="text-muted mb-4">Here's your task overview</p>
+
+                                <!-- Stats Cards -->
+                                <div class="row mb-4">
+                                    <div class="col-md-3 mb-3">
+                                        <div class="card stat-card">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-tasks fa-2x mb-2"></i>
+                                                <h3>{{ stats.totalTasks }}</h3>
+                                                <p class="mb-0">Total Tasks</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <div class="card"
+                                            style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-clock fa-2x mb-2"></i>
+                                                <h3>{{ stats.pendingTasks }}</h3>
+                                                <p class="mb-0">Pending</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <div class="card"
+                                            style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-spinner fa-2x mb-2"></i>
+                                                <h3>{{ stats.inProgressTasks }}</h3>
+                                                <p class="mb-0">In Progress</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <div class="card"
+                                            style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-check fa-2x mb-2"></i>
+                                                <h3>{{ stats.completedTasks }}</h3>
+                                                <p class="mb-0">Completed</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Recent Tasks -->
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Recent Tasks</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div v-if="recentTasks.length === 0" class="text-center text-muted py-4">
+                                            <i class="fas fa-tasks fa-3x mb-3"></i>
+                                            <p>No tasks assigned yet</p>
+                                        </div>
+                                        <div v-else>
+                                            <div v-for="task in recentTasks" :key="task._id"
+                                                class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                                                <div>
+                                                    <h6 class="mb-1">{{ task.title }}</h6>
+                                                    <small class="text-muted">Due: {{ formatDate(task.deadline)
+                                                        }}</small>
+                                                </div>
+                                                <span
+                                                    :class="'badge bg-' + (task.status === 'Completed' ? 'success' : task.status === 'In Progress' ? 'warning' : 'secondary')">
+                                                    {{ task.status }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- My Tasks View -->
+                            <div v-if="currentView === 'tasks'">
+                                <h1>My Tasks</h1>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div v-if="userTasks.length === 0" class="text-center text-muted py-4">
+                                            <i class="fas fa-tasks fa-3x mb-3"></i>
+                                            <p>No tasks assigned to you yet</p>
+                                        </div>
+                                        <div v-else class="table-responsive">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Title</th>
+                                                        <th>Description</th>
+                                                        <th>Deadline</th>
+                                                        <th>Status</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="task in userTasks" :key="task._id">
+                                                        <td>{{ task.title }}</td>
+                                                        <td>{{ task.description }}</td>
+                                                        <td>{{ formatDate(task.deadline) }}</td>
+                                                        <td>
+                                                            <select class="form-select form-select-sm"
+                                                                v-model="task.status" @change="updateTaskStatus(task)">
+                                                                <option value="Pending">Pending</option>
+                                                                <option value="In Progress">In Progress</option>
+                                                                <option value="Completed">Completed</option>
+                                                            </select>
+                                                        </td>
+                                                        <td>
+                                                            <span
+                                                                :class="'badge bg-' + (task.status === 'Completed' ? 'success' : task.status === 'In Progress' ? 'warning' : 'secondary')">
+                                                                {{ task.status }}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Users Management View (Admin Only) -->
+                            <div v-if="isAdmin && currentView === 'users'">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h1>
+                                        <i class="fas fa-users me-2"></i>
+                                        User Management
+                                    </h1>
+                                    <button class="btn btn-primary" @click="openCreateUserModal">
+                                        <i class="fas fa-plus me-2"></i>
+                                        Add New User
+                                    </button>
+                                </div>
+
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div v-if="users.length === 0" class="text-center text-muted py-4">
+                                            <i class="fas fa-users fa-3x mb-3"></i>
+                                            <p>No users found</p>
+                                        </div>
+                                        <div v-else class="table-responsive">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Email</th>
+                                                        <th>Role</th>
+                                                        <th>Created</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="user in users" :key="user._id">
+                                                        <td>{{ user.name }}</td>
+                                                        <td>{{ user.email }}</td>
+                                                        <td>
+                                                            <span :class="'badge bg-' + (user.role === 'admin' ? 'danger' : 'primary')">
+                                                                {{ user.role }}
+                                                            </span>
+                                                        </td>
+                                                        <td>{{ formatDate(user.created_at) }}</td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-outline-primary me-1"
+                                                                @click="openEditUserModal(user)">
+                                                                <i class="fas fa-edit"></i>
+                                                            </button>
+                                                            <button class="btn btn-sm btn-outline-danger"
+                                                                @click="deleteUser(user._id)"
+                                                                :disabled="user.role === 'admin'">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Admin Tasks View (Admin Only) -->
+                            <div v-if="isAdmin && currentView === 'admin-tasks'">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h1>
+                                        <i class="fas fa-tasks me-2"></i>
+                                        All Tasks Management
+                                    </h1>
+                                    <button class="btn btn-primary" @click="openCreateTaskModal">
+                                        <i class="fas fa-plus me-2"></i>
+                                        Create New Task
+                                    </button>
+                                </div>
+
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div v-if="allTasks.length === 0" class="text-center text-muted py-4">
+                                            <i class="fas fa-tasks fa-3x mb-3"></i>
+                                            <p>No tasks found</p>
+                                        </div>
+                                        <div v-else class="table-responsive">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Title</th>
+                                                        <th>Description</th>
+                                                        <th>Assigned To</th>
+                                                        <th>Deadline</th>
+                                                        <th>Status</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-for="task in allTasks" :key="task._id">
+                                                        <td>{{ task.title }}</td>
+                                                        <td>{{ task.description }}</td>
+                                                        <td>{{ getUserName(task.assigned_to) }}</td>
+                                                        <td>{{ formatDate(task.deadline) }}</td>
+                                                        <td>
+                                                            <span :class="'badge bg-' + (task.status === 'Completed' ? 'success' : task.status === 'In Progress' ? 'warning' : 'secondary')">
+                                                                {{ task.status }}
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-outline-primary me-1"
+                                                                @click="openEditTaskModal(task)">
+                                                                <i class="fas fa-edit"></i>
+                                                            </button>
+                                                            <button class="btn btn-sm btn-outline-danger"
+                                                                @click="deleteTask(task._id)">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- System Logs View (Admin Only) -->
+                            <div v-if="isAdmin && currentView === 'logs'">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h1>
+                                        <i class="fas fa-file-alt me-2"></i>
+                                        System Logs
+                                    </h1>
+                                    <div>
+                                        <button class="btn btn-outline-secondary me-2" @click="loadLogs">
+                                            <i class="fas fa-sync-alt me-2"></i>
+                                            Refresh
+                                        </button>
+                                        <button class="btn btn-outline-warning" @click="clearLogs">
+                                            <i class="fas fa-trash me-2"></i>
+                                            Clear Logs
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-terminal me-2"></i>
+                                            Application Logs
+                                        </h5>
+                                        <small class="text-muted" v-if="logs.length > 0">{{ logs.length }}
+                                            entries</small>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div v-if="loadingLogs" class="text-center p-4">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                            <p class="mt-2 mb-0">Loading logs...</p>
+                                        </div>
+
+                                        <div v-else-if="logs.length === 0" class="text-center p-4 text-muted">
+                                            <i class="fas fa-file-alt fa-3x mb-3"></i>
+                                            <p>No logs available</p>
+                                        </div>
+
+                                        <div v-else class="log-container">
+                                            <div v-for="(log, index) in logs" :key="index"
+                                                class="log-entry p-2 border-bottom">
+                                                <div class="d-flex justify-content-between">
+                                                    <span :class="getLogLevelClass(log.level)" class="fw-bold">
+                                                        [{{ log.level.toUpperCase() }}]
+                                                    </span>
+                                                    <small class="text-muted">{{ formatLogDate(log.timestamp) }}</small>
+                                                </div>
+                                                <div class="mt-1">{{ log.message }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modals -->
+        
+        <!-- Create/Edit User Modal -->
+        <div class="modal fade" id="userModal" tabindex="-1" v-if="showCreateUserModal || showEditUserModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-user me-2"></i>
+                            {{ showEditUserModal ? 'Edit User' : 'Create New User' }}
+                        </h5>
+                        <button type="button" class="btn-close" @click="closeUserModal()"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form @submit.prevent="saveUser">
+                            <div class="mb-3">
+                                <label class="form-label">Full Name</label>
+                                <input type="text" class="form-control" v-model="userForm.name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" v-model="userForm.email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <input type="password" class="form-control" v-model="userForm.password" 
+                                       :required="!showEditUserModal" 
+                                       :placeholder="showEditUserModal ? 'Leave blank to keep current password' : ''">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Role</label>
+                                <select class="form-select" v-model="userForm.role" required>
+                                    <option value="user">User</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @click="closeUserModal()">Cancel</button>
+                        <button type="button" class="btn btn-primary" @click="saveUser" :disabled="isLoading">
+                            <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                            {{ showEditUserModal ? 'Update User' : 'Create User' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create/Edit Task Modal -->
+        <div class="modal fade" id="taskModal" tabindex="-1" v-if="showCreateTaskModal || showEditTaskModal">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-tasks me-2"></i>
+                            {{ showEditTaskModal ? 'Edit Task' : 'Create New Task' }}
+                        </h5>
+                        <button type="button" class="btn-close" @click="closeTaskModal()"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form @submit.prevent="saveTask">
+                            <div class="mb-3">
+                                <label class="form-label">Task Title</label>
+                                <input type="text" class="form-control" v-model="taskForm.title" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" rows="3" v-model="taskForm.description" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Assign To</label>
+                                <select class="form-select" v-model="taskForm.assignedTo" required>
+                                    <option value="">Select a user</option>
+                                    <option v-for="user in users" :key="user._id" :value="user._id">
+                                        {{ user.name }} ({{ user.email }})
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Deadline</label>
+                                <input type="datetime-local" class="form-control" v-model="taskForm.deadline" required>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @click="closeTaskModal()">Cancel</button>
+                        <button type="button" class="btn btn-primary" @click="saveTask" :disabled="isLoading">
+                            <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                            {{ showEditTaskModal ? 'Update Task' : 'Create Task' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vue.js and Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/vue@3.2.37/dist/vue.global.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js"></script>
+        <script>
+            const { createApp } = Vue;
+
+            createApp({
+                data() {
+                    return {
+                        // User authentication
+                        isLoggedIn: false,
+                        currentUser: null,
+                        loginForm: {
+                            email: '',
+                            password: ''
+                        },
+                        registerForm: {
+                            name: '',
+                            email: '',
+                            password: '',
+                            confirmPassword: ''
+                        },
+                        isLoading: false,
+                        showRegisterForm: false,
+                        passwordsMatch: true,
+
+                        // Dashboard data
+                        currentView: 'dashboard',
+                        stats: {
+                            totalTasks: 0,
+                            pendingTasks: 0,
+                            inProgressTasks: 0,
+                            completedTasks: 0
+                        },
+                        recentTasks: [],
+                        userTasks: [],
+                        allTasks: [],
+                        users: [],
+
+                        // Modal handling
+                        showCreateUserModal: false,
+                        showEditUserModal: false,
+                        showCreateTaskModal: false,
+                        showEditTaskModal: false,
+                        userForm: {
+                            id: null,
+                            name: '',
+                            email: '',
+                            password: '',
+                            role: 'user'
+                        },
+                        taskForm: {
+                            id: null,
+                            title: '',
+                            description: '',
+                            assignedTo: '',
+                            deadline: '',
+                            status: 'Pending'
+                        },
+
+                        // Logs
+                        logs: [],
+                        loadingLogs: false
+                    }
+                },
+                computed: {
+                    isAdmin() {
+                        return this.currentUser && this.currentUser.role === 'admin';
+                    },
+                    showRegisterForm: {
+                        get() {
+                            return this._showRegisterForm || false;
+                        },
+                        set(value) {
+                            this._showRegisterForm = value;
+                        }
+                    }
+                },
+                mounted() {
+                    this.checkLoginStatus();
+                },
+                methods: {
+                    checkLoginStatus() {
+                        // Check if user is logged in (dummy implementation)
+                        const user = localStorage.getItem('user');
+                        if (user) {
+                            this.isLoggedIn = true;
+                            this.currentUser = JSON.parse(user);
+                            this.loadDashboardData();
+                        }
+                    },
+                    async loadDashboardData() {
+                        if (this.isAdmin) {
+                            await this.loadUsers();
+                            await this.loadAllTasks();
+                        } else {
+                            await this.loadUserTasks();
+                        }
+                        this.calculateStats();
+                    },
+
+                    async loadUsers() {
+                        try {
+                            const response = await axios.post('index.php', { action: 'getUsers' });
+                            if (response.data.success) {
+                                this.users = response.data.users || [];
+                            }
+                        } catch (error) {
+                            console.error('Error loading users:', error);
+                            this.showAlert('Error loading users', 'danger');
+                        }
+                    },
+
+                    async loadUserTasks() {
+                        try {
+                            const response = await axios.post('index.php', { 
+                                action: 'getUserTasks',
+                                userId: this.currentUser._id || this.currentUser.id
+                            });
+                            if (response.data.success) {
+                                this.userTasks = response.data.tasks || [];
+                                this.recentTasks = this.userTasks.slice(0, 5); // Show recent 5 tasks
+                            }
+                        } catch (error) {
+                            console.error('Error loading user tasks:', error);
+                            this.showAlert('Error loading tasks', 'danger');
+                        }
+                    },
+
+                    async loadAllTasks() {
+                        try {
+                            const response = await axios.post('index.php', { action: 'getAllTasks' });
+                            if (response.data.success) {
+                                this.allTasks = response.data.tasks || [];
+                                this.recentTasks = this.allTasks.slice(0, 5); // Show recent 5 tasks
+                            }
+                        } catch (error) {
+                            console.error('Error loading all tasks:', error);
+                            this.showAlert('Error loading tasks', 'danger');
+                        }
+                    },
+
+                    loadTasks() {
+                        if (this.isAdmin) {
+                            this.loadAllTasks();
+                        } else {
+                            this.loadUserTasks();
+                        }
+                    },
+
+                    calculateStats() {
+                        const tasks = this.isAdmin ? this.allTasks : this.userTasks;
+                        this.stats = {
+                            totalTasks: tasks.length,
+                            pendingTasks: tasks.filter(t => t.status === 'Pending').length,
+                            inProgressTasks: tasks.filter(t => t.status === 'In Progress').length,
+                            completedTasks: tasks.filter(t => t.status === 'Completed').length
+                        };
+                    },
+                    async login() {
+                        this.isLoading = true;
+                        try {
+                            const response = await axios.post('index.php', {
+                                action: 'login',
+                                email: this.loginForm.email,
+                                password: this.loginForm.password
+                            });
+
+                            if (response.data.success) {
+                                this.isLoggedIn = true;
+                                this.currentUser = response.data.user;
+                                localStorage.setItem('user', JSON.stringify(this.currentUser));
+                                await this.loadDashboardData();
+                                this.showAlert('Login successful!', 'success');
+                            } else {
+                                this.showAlert(response.data.message || 'Login failed', 'danger');
+                            }
+                        } catch (error) {
+                            console.error('Login error:', error);
+                            this.showAlert('Login error. Please try again.', 'danger');
+                        } finally {
+                            this.isLoading = false;
+                        }
+                    },
+
+                    async logout() {
+                        try {
+                            await axios.post('index.php', { action: 'logout' });
+                        } catch (error) {
+                            console.error('Logout error:', error);
+                        }
+                        this.isLoggedIn = false;
+                        this.currentUser = null;
+                        localStorage.removeItem('user');
+                        this.resetData();
+                    },
+
+                    async register() {
+                        this.isLoading = true;
+                        try {
+                            const response = await axios.post('index.php', {
+                                action: 'register',
+                                name: this.registerForm.name,
+                                email: this.registerForm.email,
+                                password: this.registerForm.password
+                            });
+
+                            if (response.data.success) {
+                                this.showAlert('Registration successful! You can now login.', 'success');
+                                this.showRegisterForm = false;
+                                this.loginForm.email = this.registerForm.email;
+                                this.loginForm.password = this.registerForm.password;
+                                // Auto-login after registration
+                                await this.login();
+                            } else {
+                                this.showAlert(response.data.message || 'Registration failed', 'danger');
+                            }
+                        } catch (error) {
+                            console.error('Registration error:', error);
+                            this.showAlert('Registration error. Please try again.', 'danger');
+                        } finally {
+                            this.isLoading = false;
+                        }
+                    },
+
+                    resetData() {
+                        this.users = [];
+                        this.userTasks = [];
+                        this.allTasks = [];
+                        this.recentTasks = [];
+                        this.stats = { totalTasks: 0, pendingTasks: 0, inProgressTasks: 0, completedTasks: 0 };
+                    },
+                    async updateTaskStatus(task) {
+                        try {
+                            const response = await axios.post('index.php', {
+                                action: 'updateTaskStatus',
+                                taskId: task._id,
+                                status: task.status
+                            });
+
+                            if (response.data.success) {
+                                this.showAlert('Task status updated successfully!', 'success');
+                                await this.loadTasks();
+                            } else {
+                                this.showAlert(response.data.message || 'Failed to update task status', 'danger');
+                            }
+                        } catch (error) {
+                            console.error('Error updating task status:', error);
+                            this.showAlert('Error updating task status', 'danger');
+                        }
+                    },
+                    openCreateUserModal() {
+                        this.resetUserForm();
+                        this.showCreateUserModal = true;
+                        this.$nextTick(() => {
+                            new bootstrap.Modal(document.getElementById('userModal')).show();
+                        });
+                    },
+                    openEditUserModal(user) {
+                        this.userForm.id = user._id;
+                        this.userForm.name = user.name;
+                        this.userForm.email = user.email;
+                        this.userForm.password = '';
+                        this.userForm.role = user.role;
+                        this.showEditUserModal = true;
+                        this.$nextTick(() => {
+                            new bootstrap.Modal(document.getElementById('userModal')).show();
+                        });
+                    },
+                    closeUserModal() {
+                        this.showCreateUserModal = false;
+                        this.showEditUserModal = false;
+                        this.resetUserForm();
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('userModal'));
+                        if (modal) modal.hide();
+                    },
+                    resetUserForm() {
+                        this.userForm = {
+                            id: null,
+                            name: '',
+                            email: '',
+                            password: '',
+                            role: 'user'
+                        };
+                    },
+                    async saveUser() {
+                        this.isLoading = true;
+                        try {
+                            const userData = { ...this.userForm };
+                            if (this.showEditUserModal && !userData.password) {
+                                delete userData.password;
+                            }
+                            
+                            const response = await axios.post('index.php', {
+                                action: this.showEditUserModal ? 'updateUser' : 'createUser',
+                                ...userData
+                            });
+                            
+                            if (response.data.success) {
+                                this.showAlert('User saved successfully!', 'success');
+                                this.loadUsers();
+                                this.closeUserModal();
+                            } else {
+                                this.showAlert(response.data.message || 'Failed to save user', 'danger');
+                            }
+                        } catch (error) {
+                            console.error('Error saving user:', error);
+                            this.showAlert('Error saving user', 'danger');
+                        } finally {
+                            this.isLoading = false;
+                        }
+                    },
+                    async deleteUser(userId) {
+                        if (!confirm('Are you sure you want to delete this user?')) return;
+                        
+                        this.isLoading = true;
+                        try {
+                            const response = await axios.post('index.php', {
+                                action: 'deleteUser',
+                                id: userId
+                            });
+                            
+                            if (response.data.success) {
+                                this.showAlert('User deleted successfully!', 'success');
+                                this.loadUsers();
+                            } else {
+                                this.showAlert(response.data.message || 'Failed to delete user', 'danger');
+                            }
+                        } catch (error) {
+                            console.error('Error deleting user:', error);
+                            this.showAlert('Error deleting user', 'danger');
+                        } finally {
+                            this.isLoading = false;
+                        }
+                    },
+                    openCreateTaskModal() {
+                        this.resetTaskForm();
+                        this.showCreateTaskModal = true;
+                        this.$nextTick(() => {
+                            new bootstrap.Modal(document.getElementById('taskModal')).show();
+                        });
+                    },
+                    openEditTaskModal(task) {
+                        this.taskForm.id = task._id;
+                        this.taskForm.title = task.title;
+                        this.taskForm.description = task.description;
+                        this.taskForm.assignedTo = task.assignedTo;
+                        this.taskForm.deadline = this.formatDateForInput(task.deadline);
+                        this.taskForm.status = task.status;
+                        this.showEditTaskModal = true;
+                        this.$nextTick(() => {
+                            new bootstrap.Modal(document.getElementById('taskModal')).show();
+                        });
+                    },
+                    closeTaskModal() {
+                        this.showCreateTaskModal = false;
+                        this.showEditTaskModal = false;
+                        this.resetTaskForm();
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('taskModal'));
+                        if (modal) modal.hide();
+                    },
+                    resetTaskForm() {
+                        this.taskForm = {
+                            id: null,
+                            title: '',
+                            description: '',
+                            assignedTo: '',
+                            deadline: '',
+                            status: 'Pending'
+                        };
+                    },
+                    async saveTask() {
+                        this.isLoading = true;
+                        try {
+                            const taskData = { 
+                                action: this.showEditTaskModal ? 'updateTask' : 'createTask',
+                                title: this.taskForm.title,
+                                description: this.taskForm.description,
+                                assignedTo: this.taskForm.assignedTo,
+                                deadline: this.taskForm.deadline,
+                                status: this.taskForm.status
+                            };
+                            
+                            if (this.showEditTaskModal) {
+                                taskData.taskId = this.taskForm.id;
+                            }
+                            
+                            const response = await axios.post('index.php', taskData);
+                            
+                            if (response.data.success) {
+                                this.showAlert('Task saved successfully!', 'success');
+                                this.loadTasks();
+                                this.closeTaskModal();
+                            } else {
+                                this.showAlert(response.data.message || 'Failed to save task', 'danger');
+                            }
+                        } catch (error) {
+                            console.error('Error saving task:', error);
+                            this.showAlert('Error saving task', 'danger');
+                        } finally {
+                            this.isLoading = false;
+                        }
+                    },
+                    async deleteTask(taskId) {
+                        if (!confirm('Are you sure you want to delete this task?')) return;
+                        
+                        this.isLoading = true;
+                        try {
+                            const response = await axios.post('index.php', {
+                                action: 'deleteTask',
+                                taskId: taskId
+                            });
+                            
+                            if (response.data.success) {
+                                this.showAlert('Task deleted successfully!', 'success');
+                                this.loadTasks();
+                            } else {
+                                this.showAlert(response.data.message || 'Failed to delete task', 'danger');
+                            }
+                        } catch (error) {
+                            console.error('Error deleting task:', error);
+                            this.showAlert('Error deleting task', 'danger');
+                        } finally {
+                            this.isLoading = false;
+                        }
+                    },
+                    formatDateForInput(dateString) {
+                        if (!dateString) return '';
+                        const date = new Date(dateString);
+                        return date.toISOString().slice(0, 16);
+                    },
+                    async loadLogs() {
+                        this.loadingLogs = true;
+                        try {
+                            const response = await axios.get('index.php?action=getLogs');
+                            if (response.data.success) {
+                                this.logs = response.data.logs || [];
+                            } else {
+                                this.showAlert('Failed to load logs', 'danger');
+                            }
+                        } catch (error) {
+                            console.error('Error loading logs:', error);
+                            this.showAlert('Error loading logs', 'danger');
+                        } finally {
+                            this.loadingLogs = false;
+                        }
+                    },
+                    async clearLogs() {
+                        if (!confirm('Are you sure you want to clear the logs?')) return;
+                        
+                        this.isLoading = true;
+                        try {
+                            const response = await axios.post('index.php', { action: 'clearLogs' });
+                            if (response.data.success) {
+                                this.logs = [];
+                                this.showAlert('Logs cleared successfully!', 'success');
+                            } else {
+                                this.showAlert('Failed to clear logs', 'danger');
+                            }
+                        } catch (error) {
+                            console.error('Error clearing logs:', error);
+                            this.showAlert('Error clearing logs', 'danger');
+                        } finally {
+                            this.isLoading = false;
+                        }
+                    },
+                    showAlert(message, type = 'success') {
+                        // Create and show Bootstrap alert
+                        const alertContainer = document.getElementById('alert-container') || this.createAlertContainer();
+                        
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+                        alertDiv.innerHTML = `
+                            ${message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        `;
+                        
+                        alertContainer.appendChild(alertDiv);
+                        
+                        // Auto-dismiss after 5 seconds
+                        setTimeout(() => {
+                            if (alertDiv.parentNode) {
+                                alertDiv.remove();
+                            }
+                        }, 5000);
+                    },
+
+                    createAlertContainer() {
+                        const container = document.createElement('div');
+                        container.id = 'alert-container';
+                        container.style.position = 'fixed';
+                        container.style.top = '20px';
+                        container.style.right = '20px';
+                        container.style.zIndex = '9999';
+                        container.style.maxWidth = '400px';
+                        document.body.appendChild(container);
+                        return container;
+                    },
+                    formatDate(dateString) {
+                        if (!dateString) return '';
+                        const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+                        return new Date(dateString).toLocaleDateString(undefined, options);
+                    },
+                    getUserName(userId) {
+                        const user = this.users.find(u => u._id === userId);
+                        return user ? user.name : 'Unassigned';
+                    },
+                    getLogLevelClass(level) {
+                        switch (level) {
+                            case 'info': return 'text-primary';
+                            case 'error': return 'text-danger';
+                            case 'warning': return 'text-warning';
+                            default: return 'text-secondary';
+                        }
+                    },
+                    formatLogDate(timestamp) {
+                        if (!timestamp) return '';
+                        const date = new Date(timestamp);
+                        return date.toLocaleString();
+                    }
+                }
+            }).mount('#app');
+        </script>
+    </div>
+</body>
+
+</html>
