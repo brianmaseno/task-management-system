@@ -1,8 +1,11 @@
-version: 1
 services:
   - type: web
     name: taskmaster-pro
-    env: 
+    env: php
+    buildCommand: chmod +x build.sh && ./build.sh
+    startCommand: chmod +x start.sh && ./start.sh
+    plan: free
+    envVars:
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
@@ -25,7 +28,3 @@ services:
         value: briancreatives@gmail.com
       - key: MAIL_FROM_NAME
         value: Task Management System
-    runtime: php
-    buildCommand: composer install --no-dev --optimize-autoloader
-    startCommand: php -S 0.0.0.0:$PORT -t public
-    plan: free
