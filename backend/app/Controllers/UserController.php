@@ -171,7 +171,7 @@ class UserController
     public function deleteUser($data)
     {
         try {
-            $userId = $data['userId'] ?? '';
+            $userId = $data['userId'] ?? $data['id'] ?? '';
 
             if (empty($userId)) {
                 return ['success' => false, 'message' => 'User ID is required'];

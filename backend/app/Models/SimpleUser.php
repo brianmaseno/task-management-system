@@ -20,10 +20,10 @@ class SimpleUser
 
         $result = $this->db->insertUser($userData);
         
-        // Return with expected key name
+        // Return consistent structure
         return [
             'success' => $result['success'],
-            'userId' => $result['id'],
+            'id' => $result['id'] ?? null,
             'message' => $result['success'] ? 'User created successfully' : 'Failed to create user'
         ];
     }

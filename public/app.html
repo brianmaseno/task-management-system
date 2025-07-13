@@ -966,8 +966,14 @@
                         this.isLoading = true;
                         try {
                             const userData = { ...this.userForm };
-                            if (this.showEditUserModal && !userData.password) {
-                                delete userData.password;
+                            
+                            // For edit mode, rename 'id' to 'userId' and remove empty password
+                            if (this.showEditUserModal) {
+                                userData.userId = userData.id;
+                                delete userData.id;
+                                if (!userData.password) {
+                                    delete userData.password;
+                                }
                             }
                             
                             const response = await axios.post('index.php', {
@@ -977,7 +983,7 @@
                             
                             if (response.data.success) {
                                 this.showAlert('User saved successfully!', 'success');
-                                this.loadUsers();
+                                await this.loadUsers(); // Wait for reload to complete
                                 this.closeUserModal();
                             } else {
                                 this.showAlert(response.data.message || 'Failed to save user', 'danger');
@@ -996,12 +1002,12 @@
                         try {
                             const response = await axios.post('index.php', {
                                 action: 'deleteUser',
-                                id: userId
+                                userId: userId
                             });
                             
                             if (response.data.success) {
                                 this.showAlert('User deleted successfully!', 'success');
-                                this.loadUsers();
+                                await this.loadUsers(); // Wait for reload to complete
                             } else {
                                 this.showAlert(response.data.message || 'Failed to delete user', 'danger');
                             }
