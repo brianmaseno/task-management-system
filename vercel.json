@@ -25,10 +25,5 @@
     "MAIL_ENCRYPTION": "@mail_encryption",
     "MAIL_FROM_ADDRESS": "@mail_from_address",
     "MAIL_FROM_NAME": "@mail_from_name"
-  },
-  "functions": {
-    "public/index.php": {
-      "runtime": "vercel-php@0.6.0"
-    }
   }
 }
