@@ -24,18 +24,18 @@ $is_api_request = strpos($request_uri, '/api') === 0 ||
                   strpos($request_uri, 'action=') !== false ||
                   $_SERVER['REQUEST_METHOD'] !== 'GET';
 
-// If it's a web request to the root, serve the app.html
+// If it's a web request to the root, serve the index.html
 if (!$is_api_request && ($request_uri === '/' || $request_uri === '/index.php')) {
-    // Redirect to app.html
-    header('Location: /app.html');
+    // Redirect to index.html in the root
+    header('Location: /index.html');
     exit();
 }
 
-// If it's requesting app.html directly, serve it
-if (strpos($request_uri, '/app.html') !== false) {
-    if (file_exists(__DIR__ . '/app.html')) {
+// If it's requesting index.html directly, serve it from root
+if (strpos($request_uri, '/index.html') !== false) {
+    if (file_exists(__DIR__ . '/../index.html')) {
         header('Content-Type: text/html');
-        readfile(__DIR__ . '/app.html');
+        readfile(__DIR__ . '/../index.html');
         exit();
     }
 }
