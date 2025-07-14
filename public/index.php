@@ -26,16 +26,19 @@ $is_api_request = strpos($request_uri, '/api') === 0 ||
 
 // If it's a web request to the root, serve the index.html
 if (!$is_api_request && ($request_uri === '/' || $request_uri === '/index.php')) {
-    // Redirect to index.html in the root
-    header('Location: /index.html');
-    exit();
+    // Serve index.html from public directory
+    if (file_exists(__DIR__ . '/index.html')) {
+        header('Content-Type: text/html');
+        readfile(__DIR__ . '/index.html');
+        exit();
+    }
 }
 
-// If it's requesting index.html directly, serve it from root
+// If it's requesting index.html directly, serve it from public directory
 if (strpos($request_uri, '/index.html') !== false) {
-    if (file_exists(__DIR__ . '/../index.html')) {
+    if (file_exists(__DIR__ . '/index.html')) {
         header('Content-Type: text/html');
-        readfile(__DIR__ . '/../index.html');
+        readfile(__DIR__ . '/index.html');
         exit();
     }
 }

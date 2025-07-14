@@ -704,7 +704,6 @@
                         },
                         isLoading: false,
                         showRegisterForm: false,
-                        passwordsMatch: true,
 
                         // Dashboard data
                         currentView: 'dashboard',
@@ -748,6 +747,9 @@
                 computed: {
                     isAdmin() {
                         return this.currentUser && this.currentUser.role === 'admin';
+                    },
+                    passwordsMatch() {
+                        return this.registerForm.password === this.registerForm.confirmPassword;
                     },
                     showRegisterForm: {
                         get() {
