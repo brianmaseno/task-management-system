@@ -13,7 +13,8 @@ class Logger extends AbstractLogger
 
     public function __construct($logPath = null, $logLevel = LogLevel::INFO, $maxFileSize = 10485760) // 10MB
     {
-        $this->logPath = $logPath ?: (__DIR__ . '/../../logs/app.log');
+        // HARDCODED log path for Azure deployment
+        $this->logPath = $logPath ?: '/tmp/taskmaster-app.log';
         $this->logLevel = $logLevel;
         $this->maxFileSize = $maxFileSize;
 

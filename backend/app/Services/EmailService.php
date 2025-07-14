@@ -19,19 +19,19 @@ class EmailService
     private function configureMailer()
     {
         try {
-            // Server settings
+            // Server settings - HARDCODED for Azure deployment
             $this->mailer->isSMTP();
-            $this->mailer->Host = $_ENV['MAIL_HOST'] ?? 'smtp.gmail.com';
+            $this->mailer->Host = 'smtp.gmail.com';
             $this->mailer->SMTPAuth = true;
-            $this->mailer->Username = $_ENV['MAIL_USERNAME'] ?? '';
-            $this->mailer->Password = $_ENV['MAIL_PASSWORD'] ?? '';
+            $this->mailer->Username = 'briancreatives@gmail.com';
+            $this->mailer->Password = 'vadt zjjn rfgc zerf';
             $this->mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $this->mailer->Port = $_ENV['MAIL_PORT'] ?? 587;
+            $this->mailer->Port = 587;
 
             // Default from address
             $this->mailer->setFrom(
-                $_ENV['MAIL_FROM_ADDRESS'] ?? 'noreply@taskflow.com',
-                $_ENV['MAIL_FROM_NAME'] ?? 'TaskFlow System'
+                'briancreatives@gmail.com',
+                'TaskMaster Pro System'
             );
         } catch (Exception $e) {
             error_log('Mailer configuration error: ' . $e->getMessage());

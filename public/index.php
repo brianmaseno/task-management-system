@@ -43,9 +43,13 @@ if (file_exists(__DIR__ . '/../.env')) {
     debug_log('.env loaded', ['variables_count' => count($_ENV)]);
 } else {
     debug_log('ERROR: .env file not found, loading Azure environment configuration', ['path' => __DIR__ . '/../.env']);
-    // Load Azure environment configuration
+    // Load Azure environment configuration with HARDCODED values
     require_once __DIR__ . '/../azure-env.php';
-    debug_log('Azure environment configuration loaded', ['variables_count' => count($_ENV)]);
+    debug_log('Azure environment configuration loaded with HARDCODED VALUES', [
+        'variables_count' => count($_ENV),
+        'mongodb_uri_set' => isset($_ENV['MONGODB_URI']) ? 'YES' : 'NO',
+        'mail_host_set' => isset($_ENV['MAIL_HOST']) ? 'YES' : 'NO'
+    ]);
 }
 
 // Check if this is an API request or a web request

@@ -80,36 +80,25 @@
             <pre><?php
             try {
                 if (extension_loaded('mongodb')) {
-                    // Try to connect to MongoDB
-                    if (file_exists(__DIR__ . '/../.env')) {
-                        $lines = file(__DIR__ . '/../.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-                        $mongodb_uri = '';
-                        foreach ($lines as $line) {
-                            if (strpos($line, 'MONGODB_URI=') === 0) {
-                                $mongodb_uri = trim(substr($line, 12));
-                                break;
-                            }
-                        }
-                        
-                        if ($mongodb_uri) {
-                            echo "Attempting MongoDB connection...\n";
-                            $client = new MongoDB\Client($mongodb_uri);
-                            $db = $client->task_management;
-                            $collection = $db->users;
-                            $count = $collection->countDocuments();
-                            echo "✅ MongoDB connection successful!\n";
-                            echo "User count: $count\n";
-                        } else {
-                            echo "❌ MONGODB_URI not found in .env\n";
-                        }
-                    } else {
-                        echo "❌ .env file not found\n";
-                    }
+                    // HARDCODED MongoDB connection test
+                    $mongodb_uri = 'mongodb+srv://brianmayoga:1uZIQRDuX5Km4flb@cyton.etkwfr8.mongodb.net/?retryWrites=true&w=majority&appName=Cyton';
+                    
+                    echo "Attempting MongoDB connection with hardcoded URI...\n";
+                    $client = new MongoDB\Client($mongodb_uri);
+                    $db = $client->task_management;
+                    $collection = $db->users;
+                    $count = $collection->countDocuments();
+                    echo "✅ MongoDB connection successful!\n";
+                    echo "User count: $count\n";
+                    echo "Database: task_management\n";
+                    echo "Connection URI: mongodb+srv://brianmayoga:***@cyton.etkwfr8.mongodb.net/\n";
                 } else {
                     echo "❌ MongoDB extension not loaded\n";
                 }
             } catch (Exception $e) {
                 echo "❌ MongoDB connection failed: " . $e->getMessage() . "\n";
+                echo "Trying to diagnose the issue...\n";
+                echo "MongoDB URI used: mongodb+srv://brianmayoga:***@cyton.etkwfr8.mongodb.net/\n";
             }
             ?></pre>
         </div>
