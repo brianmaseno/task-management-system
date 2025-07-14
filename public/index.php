@@ -18,7 +18,29 @@ if (file_exists(__DIR__ . '/../.env')) {
     }
 }
 
-// Enable CORS
+// Check if this is an API request or a web request
+$request_uri = $_SERVER['REQUEST_URI'];
+$is_api_request = strpos($request_uri, '/api') === 0 || 
+                  strpos($request_uri, 'action=') !== false ||
+                  $_SERVER['REQUEST_METHOD'] !== 'GET';
+
+// If it's a web request to the root, serve the app.html
+if (!$is_api_request && ($request_uri === '/' || $request_uri === '/index.php')) {
+    // Redirect to app.html
+    header('Location: /app.html');
+    exit();
+}
+
+// If it's requesting app.html directly, serve it
+if (strpos($request_uri, '/app.html') !== false) {
+    if (file_exists(__DIR__ . '/app.html')) {
+        header('Content-Type: text/html');
+        readfile(__DIR__ . '/app.html');
+        exit();
+    }
+}
+
+// Enable CORS for API requests
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
@@ -28,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-// Set content type
+// Set content type for API responses
 header('Content-Type: application/json');
 
 // Error reporting (environment-specific)
@@ -41,5 +63,5 @@ if (isset($_ENV['APP_ENV']) && $_ENV['APP_ENV'] === 'production') {
     ini_set('display_errors', 1);
 }
 
-// Include router
+// Include router for API requests
 require_once __DIR__ . '/../backend/routes/api.php';
