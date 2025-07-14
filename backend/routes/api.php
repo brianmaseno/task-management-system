@@ -177,6 +177,51 @@ try {
             echo $controller->clearLogs();
             break;
 
+        case 'test':
+            api_debug_log('Test endpoint called');
+            echo json_encode([
+                'success' => true,
+                'message' => 'API connection successful',
+                'timestamp' => date('Y-m-d H:i:s'),
+                'server' => [
+                    'PHP_VERSION' => PHP_VERSION,
+                    'MongoDB_extension' => extension_loaded('mongodb') ? 'loaded' : 'not loaded',
+                    'session_status' => session_status(),
+                    'current_user' => SessionService::getCurrentUser()
+                ]
+            ]);
+            break;
+
+        case 'testDatabase':
+            api_debug_log('Database test endpoint called');
+            try {
+                require_once __DIR__ . '/../app/Database/SimpleConnection.php';
+                $db = new App\Database\SimpleConnection();
+                
+                // Test basic connection
+                $users = $db->getAllUsers();
+                
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Database connection successful',
+                    'user_count' => count($users),
+                    'mongodb_uri' => isset($_ENV['MONGODB_URI']) ? '[SET]' : '[NOT SET]',
+                    'env_vars' => [
+                        'DB_HOST' => $_ENV['DB_HOST'] ?? 'not set',
+                        'DB_DATABASE' => $_ENV['DB_DATABASE'] ?? 'not set',
+                        'MONGODB_URI' => isset($_ENV['MONGODB_URI']) ? '[SET]' : '[NOT SET]'
+                    ]
+                ]);
+            } catch (Exception $e) {
+                api_debug_log('Database test failed', ['error' => $e->getMessage()]);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Database connection failed: ' . $e->getMessage(),
+                    'mongodb_extension' => extension_loaded('mongodb') ? 'loaded' : 'not loaded'
+                ]);
+            }
+            break;
+
         default:
             api_debug_log('Invalid action attempted', ['action' => $action]);
             $logger->warning("Invalid action attempted", ['action' => $action]);

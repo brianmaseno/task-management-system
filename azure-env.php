@@ -42,5 +42,6 @@ $_ENV['SESSION_DOMAIN'] = 'null';
 $_ENV['WEBSITES_ENABLE_APP_SERVICE_STORAGE'] = 'false';
 $_ENV['WEBSITES_CONTAINER_START_TIME_LIMIT'] = '1800';
 
-echo "<!-- Azure Environment Variables Loaded with Hardcoded Values -->\n";
+// Log that azure env was loaded (no output)
+error_log("Azure environment configuration loaded with hardcoded values");
 ?>

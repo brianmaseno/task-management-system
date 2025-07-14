@@ -172,6 +172,15 @@
                         <p class="mb-0">Don't have an account?
                             <a href="#" @click="showRegisterForm = true" class="text-primary">Register here</a>
                         </p>
+                        <hr class="my-3">
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-info btn-sm flex-fill" @click="testConnection">
+                                <i class="fas fa-plug me-1"></i>Test API
+                            </button>
+                            <button type="button" class="btn btn-outline-warning btn-sm flex-fill" @click="testDatabase">
+                                <i class="fas fa-database me-1"></i>Test DB
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -210,6 +219,15 @@
                         <p class="mb-0">Already have an account?
                             <a href="#" @click="showRegisterForm = false" class="text-primary">Sign in here</a>
                         </p>
+                        <hr class="my-3">
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-info btn-sm flex-fill" @click="testConnection">
+                                <i class="fas fa-plug me-1"></i>Test API
+                            </button>
+                            <button type="button" class="btn btn-outline-warning btn-sm flex-fill" @click="testDatabase">
+                                <i class="fas fa-database me-1"></i>Test DB
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -761,65 +779,166 @@
                     }
                 },
                 mounted() {
+                    // Debug information
+                    console.log('🚀 TASKMASTER PRO LOADED');
+                    console.log('🌍 CURRENT URL:', window.location.href);
+                    console.log('🌐 USER AGENT:', navigator.userAgent);
+                    console.log('📱 SCREEN:', {
+                        width: screen.width,
+                        height: screen.height,
+                        availWidth: screen.availWidth,
+                        availHeight: screen.availHeight
+                    });
+                    console.log('🖥️ VIEWPORT:', {
+                        width: window.innerWidth,
+                        height: window.innerHeight
+                    });
+                    console.log('🔧 AXIOS VERSION:', axios.VERSION || 'Unknown');
+                    console.log('⚡ VUE VERSION:', Vue.version || 'Unknown');
+                    
+                    // Setup Axios interceptors for debugging
+                    axios.interceptors.request.use(
+                        (config) => {
+                            console.log('🌐 AXIOS REQUEST:', {
+                                method: config.method?.toUpperCase(),
+                                url: config.url,
+                                data: config.data,
+                                headers: config.headers,
+                                timestamp: new Date().toISOString()
+                            });
+                            return config;
+                        },
+                        (error) => {
+                            console.error('🚨 AXIOS REQUEST ERROR:', error);
+                            return Promise.reject(error);
+                        }
+                    );
+
+                    axios.interceptors.response.use(
+                        (response) => {
+                            console.log('📡 AXIOS RESPONSE:', {
+                                status: response.status,
+                                statusText: response.statusText,
+                                url: response.config.url,
+                                data: response.data,
+                                headers: response.headers,
+                                timestamp: new Date().toISOString()
+                            });
+                            return response;
+                        },
+                        (error) => {
+                            console.error('🚨 AXIOS RESPONSE ERROR:', {
+                                message: error.message,
+                                status: error.response?.status,
+                                statusText: error.response?.statusText,
+                                url: error.config?.url,
+                                data: error.response?.data,
+                                timestamp: new Date().toISOString()
+                            });
+                            return Promise.reject(error);
+                        }
+                    );
+
                     this.checkLoginStatus();
                 },
                 methods: {
                     checkLoginStatus() {
+                        console.log('🔍 CHECKING LOGIN STATUS');
                         // Check if user is logged in (dummy implementation)
                         const user = localStorage.getItem('user');
+                        console.log('💾 LOCALSTORAGE USER:', user);
+                        
                         if (user) {
-                            this.isLoggedIn = true;
-                            this.currentUser = JSON.parse(user);
-                            this.loadDashboardData();
+                            try {
+                                const parsedUser = JSON.parse(user);
+                                console.log('✅ USER FOUND IN LOCALSTORAGE:', parsedUser);
+                                this.isLoggedIn = true;
+                                this.currentUser = parsedUser;
+                                this.loadDashboardData();
+                            } catch (error) {
+                                console.error('❌ ERROR PARSING USER FROM LOCALSTORAGE:', error);
+                                localStorage.removeItem('user');
+                            }
+                        } else {
+                            console.log('🚫 NO USER IN LOCALSTORAGE');
                         }
                     },
                     async loadDashboardData() {
+                        console.log('📊 LOADING DASHBOARD DATA:', {
+                            isAdmin: this.isAdmin,
+                            currentUser: this.currentUser
+                        });
+                        
                         if (this.isAdmin) {
+                            console.log('👑 LOADING ADMIN DATA');
                             await this.loadUsers();
                             await this.loadAllTasks();
                         } else {
+                            console.log('👤 LOADING USER DATA');
                             await this.loadUserTasks();
                         }
                         this.calculateStats();
+                        console.log('📊 DASHBOARD DATA LOADED');
                     },
 
                     async loadUsers() {
+                        console.log('👥 LOADING USERS');
                         try {
                             const response = await axios.post('index.php', { action: 'getUsers' });
+                            console.log('📨 USERS RESPONSE:', response.data);
+                            
                             if (response.data.success) {
                                 this.users = response.data.users || [];
+                                console.log('✅ USERS LOADED:', this.users.length, 'users');
+                            } else {
+                                console.log('❌ USERS LOAD FAILED:', response.data);
                             }
                         } catch (error) {
-                            console.error('Error loading users:', error);
+                            console.error('💥 ERROR LOADING USERS:', error);
                             this.showAlert('Error loading users', 'danger');
                         }
                     },
 
                     async loadUserTasks() {
+                        console.log('📋 LOADING USER TASKS');
                         try {
-                            const response = await axios.post('index.php', {
+                            const requestData = {
                                 action: 'getUserTasks',
                                 userId: this.currentUser._id || this.currentUser.id
-                            });
+                            };
+                            
+                            console.log('🚀 SENDING USER TASKS REQUEST:', requestData);
+                            const response = await axios.post('index.php', requestData);
+                            console.log('📨 USER TASKS RESPONSE:', response.data);
+                            
                             if (response.data.success) {
                                 this.userTasks = response.data.tasks || [];
                                 this.recentTasks = this.userTasks.slice(0, 5); // Show recent 5 tasks
+                                console.log('✅ USER TASKS LOADED:', this.userTasks.length, 'tasks');
+                            } else {
+                                console.log('❌ USER TASKS LOAD FAILED:', response.data);
                             }
                         } catch (error) {
-                            console.error('Error loading user tasks:', error);
+                            console.error('💥 ERROR LOADING USER TASKS:', error);
                             this.showAlert('Error loading tasks', 'danger');
                         }
                     },
 
                     async loadAllTasks() {
+                        console.log('📋 LOADING ALL TASKS');
                         try {
                             const response = await axios.post('index.php', { action: 'getAllTasks' });
+                            console.log('📨 ALL TASKS RESPONSE:', response.data);
+                            
                             if (response.data.success) {
                                 this.allTasks = response.data.tasks || [];
                                 this.recentTasks = this.allTasks.slice(0, 5); // Show recent 5 tasks
+                                console.log('✅ ALL TASKS LOADED:', this.allTasks.length, 'tasks');
+                            } else {
+                                console.log('❌ ALL TASKS LOAD FAILED:', response.data);
                             }
                         } catch (error) {
-                            console.error('Error loading all tasks:', error);
+                            console.error('💥 ERROR LOADING ALL TASKS:', error);
                             this.showAlert('Error loading tasks', 'danger');
                         }
                     },
@@ -843,27 +962,58 @@
                     },
                     async login() {
                         this.isLoading = true;
+                        console.log('🔐 LOGIN ATTEMPT:', {
+                            email: this.loginForm.email,
+                            password: this.loginForm.password ? '[HIDDEN]' : '[EMPTY]',
+                            timestamp: new Date().toISOString()
+                        });
+                        
                         try {
-                            const response = await axios.post('index.php', {
+                            const loginData = {
                                 action: 'login',
                                 email: this.loginForm.email,
                                 password: this.loginForm.password
+                            };
+                            
+                            console.log('🚀 SENDING LOGIN REQUEST:', {
+                                url: 'index.php',
+                                data: { ...loginData, password: '[HIDDEN]' }
+                            });
+                            
+                            const response = await axios.post('index.php', loginData);
+                            
+                            console.log('📨 LOGIN RESPONSE:', {
+                                status: response.status,
+                                statusText: response.statusText,
+                                headers: response.headers,
+                                data: response.data
                             });
 
                             if (response.data.success) {
+                                console.log('✅ LOGIN SUCCESS:', response.data.user);
                                 this.isLoggedIn = true;
                                 this.currentUser = response.data.user;
                                 localStorage.setItem('user', JSON.stringify(this.currentUser));
+                                console.log('💾 USER STORED IN LOCALSTORAGE:', this.currentUser);
                                 await this.loadDashboardData();
                                 this.showAlert('Login successful!', 'success');
                             } else {
+                                console.log('❌ LOGIN FAILED:', response.data);
                                 this.showAlert(response.data.message || 'Login failed', 'danger');
                             }
                         } catch (error) {
-                            console.error('Login error:', error);
+                            console.error('💥 LOGIN ERROR:', {
+                                message: error.message,
+                                response: error.response,
+                                status: error.response?.status,
+                                statusText: error.response?.statusText,
+                                data: error.response?.data,
+                                stack: error.stack
+                            });
                             this.showAlert('Login error. Please try again.', 'danger');
                         } finally {
                             this.isLoading = false;
+                            console.log('🏁 LOGIN ATTEMPT FINISHED');
                         }
                     },
 
@@ -881,29 +1031,62 @@
 
                     async register() {
                         this.isLoading = true;
+                        console.log('📝 REGISTRATION ATTEMPT:', {
+                            name: this.registerForm.name,
+                            email: this.registerForm.email,
+                            password: this.registerForm.password ? '[HIDDEN]' : '[EMPTY]',
+                            confirmPassword: this.registerForm.confirmPassword ? '[HIDDEN]' : '[EMPTY]',
+                            passwordsMatch: this.passwordsMatch,
+                            timestamp: new Date().toISOString()
+                        });
+                        
                         try {
-                            const response = await axios.post('index.php', {
+                            const registerData = {
                                 action: 'register',
                                 name: this.registerForm.name,
                                 email: this.registerForm.email,
                                 password: this.registerForm.password
+                            };
+                            
+                            console.log('🚀 SENDING REGISTRATION REQUEST:', {
+                                url: 'index.php',
+                                data: { ...registerData, password: '[HIDDEN]' }
+                            });
+
+                            const response = await axios.post('index.php', registerData);
+                            
+                            console.log('📨 REGISTRATION RESPONSE:', {
+                                status: response.status,
+                                statusText: response.statusText,
+                                data: response.data
                             });
 
                             if (response.data.success) {
+                                console.log('✅ REGISTRATION SUCCESS');
                                 this.showAlert('Registration successful! You can now login.', 'success');
                                 this.showRegisterForm = false;
                                 this.loginForm.email = this.registerForm.email;
                                 this.loginForm.password = this.registerForm.password;
                                 // Auto-login after registration
+                                console.log('🔄 AUTO-LOGIN AFTER REGISTRATION');
                                 await this.login();
                             } else {
+                                console.log('❌ REGISTRATION FAILED:', response.data);
                                 this.showAlert(response.data.message || 'Registration failed', 'danger');
                             }
                         } catch (error) {
-                            console.error('Registration error:', error);
+                            console.error('💥 REGISTRATION ERROR:', {
+                                message: error.message,
+                                response: error.response,
+                                status: error.response?.status,
+                                statusText: error.response?.statusText,
+                                data: error.response?.data,
+                                stack: error.stack
+                            });
                             this.showAlert('Registration error. Please try again.', 'danger');
                         } finally {
                             this.isLoading = false;
+                            console.log('🏁 REGISTRATION ATTEMPT FINISHED');
                         }
                     },
 
@@ -1207,6 +1390,33 @@
                         if (!timestamp) return '';
                         const date = new Date(timestamp);
                         return date.toLocaleString();
+                    },
+
+                    // Debug helper methods
+                    async testConnection() {
+                        console.log('🧪 TESTING CONNECTION');
+                        try {
+                            const response = await axios.post('index.php', { action: 'test' });
+                            console.log('🧪 TEST RESPONSE:', response.data);
+                            this.showAlert('Connection test: ' + (response.data.success ? 'SUCCESS' : 'FAILED'), 
+                                response.data.success ? 'success' : 'danger');
+                        } catch (error) {
+                            console.error('🧪 TEST ERROR:', error);
+                            this.showAlert('Connection test failed', 'danger');
+                        }
+                    },
+
+                    async testDatabase() {
+                        console.log('🗄️ TESTING DATABASE');
+                        try {
+                            const response = await axios.post('index.php', { action: 'testDatabase' });
+                            console.log('🗄️ DATABASE TEST RESPONSE:', response.data);
+                            this.showAlert('Database test: ' + (response.data.success ? 'SUCCESS' : 'FAILED'), 
+                                response.data.success ? 'success' : 'danger');
+                        } catch (error) {
+                            console.error('🗄️ DATABASE TEST ERROR:', error);
+                            this.showAlert('Database test failed', 'danger');
+                        }
                     }
                 }
             }).mount('#app');
