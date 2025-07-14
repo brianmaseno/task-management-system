@@ -42,7 +42,10 @@ if (file_exists(__DIR__ . '/../.env')) {
     }
     debug_log('.env loaded', ['variables_count' => count($_ENV)]);
 } else {
-    debug_log('ERROR: .env file not found', ['path' => __DIR__ . '/../.env']);
+    debug_log('ERROR: .env file not found, loading Azure environment configuration', ['path' => __DIR__ . '/../.env']);
+    // Load Azure environment configuration
+    require_once __DIR__ . '/../azure-env.php';
+    debug_log('Azure environment configuration loaded', ['variables_count' => count($_ENV)]);
 }
 
 // Check if this is an API request or a web request
@@ -79,6 +82,18 @@ if (strpos($request_uri, '/index.html') !== false) {
         exit();
     } else {
         debug_log('ERROR: index.html not found for direct request');
+    }
+}
+
+// If it's requesting debug.php directly, serve it from public directory
+if (strpos($request_uri, '/debug.php') !== false) {
+    debug_log('Direct request for debug.php');
+    if (file_exists(__DIR__ . '/debug.php')) {
+        header('Content-Type: text/html');
+        require_once __DIR__ . '/debug.php';
+        exit();
+    } else {
+        debug_log('ERROR: debug.php not found for direct request');
     }
 }
 
