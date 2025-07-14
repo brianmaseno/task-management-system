@@ -1,5 +1,19 @@
 <?php
 
+// Debug logging function (same as in index.php)
+function api_debug_log($message, $data = null) {
+    $log_entry = date('Y-m-d H:i:s') . ' [API] - ' . $message;
+    if ($data !== null) {
+        $log_entry .= ' - ' . json_encode($data);
+    }
+    $log_entry .= "\n";
+    
+    error_log($log_entry);
+    file_put_contents(__DIR__ . '/../../debug.log', $log_entry, FILE_APPEND | LOCK_EX);
+}
+
+api_debug_log('=== API ROUTER START ===');
+
 require_once __DIR__ . '/../app/Database/Connection.php';
 require_once __DIR__ . '/../app/Models/User.php';
 require_once __DIR__ . '/../app/Models/Task.php';
@@ -11,6 +25,8 @@ require_once __DIR__ . '/../app/Services/EmailService.php';
 require_once __DIR__ . '/../app/Services/SessionService.php';
 require_once __DIR__ . '/../app/Services/Logger.php';
 
+api_debug_log('All includes loaded successfully');
+
 use App\Controllers\AuthController;
 use App\Controllers\UserController;
 use App\Controllers\TaskController;
@@ -18,12 +34,24 @@ use App\Controllers\LogController;
 use App\Services\SessionService;
 use App\Services\Logger;
 
+api_debug_log('Use statements processed');
+
 // Initialize logger
 $logger = new Logger();
+api_debug_log('Logger initialized');
 
 // Get the request data
-$input = json_decode(file_get_contents('php://input'), true);
+$raw_input = file_get_contents('php://input');
+$input = json_decode($raw_input, true);
 $action = $input['action'] ?? '';
+
+api_debug_log('Request data parsed', [
+    'raw_input' => $raw_input,
+    'parsed_input' => $input,
+    'action' => $action,
+    'POST' => $_POST,
+    'content_type' => $_SERVER['CONTENT_TYPE'] ?? 'not set'
+]);
 
 // Log the incoming request
 $logger->info("API Request", [
@@ -34,12 +62,20 @@ $logger->info("API Request", [
 ]);
 
 try {
+    api_debug_log('Processing action', ['action' => $action]);
+    
     switch ($action) {
         case 'login':
+            api_debug_log('Processing login request', $input);
             $controller = new AuthController();
+            api_debug_log('AuthController created');
+            
             $result = $controller->login($input);
+            api_debug_log('Login result', $result);
+            
             if ($result['success']) {
                 SessionService::login($result['user']);
+                api_debug_log('Session created for user', ['user_id' => $result['user']['_id'] ?? 'unknown']);
             }
             echo json_encode($result);
             break;
@@ -142,11 +178,19 @@ try {
             break;
 
         default:
+            api_debug_log('Invalid action attempted', ['action' => $action]);
             $logger->warning("Invalid action attempted", ['action' => $action]);
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
             break;
     }
 } catch (Exception $e) {
+    api_debug_log('API Exception caught', [
+        'action' => $action,
+        'error' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine()
+    ]);
+    
     $logger->error("API Error", [
         'action' => $action,
         'error' => $e->getMessage(),
@@ -154,3 +198,5 @@ try {
     ]);
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
+
+api_debug_log('=== API ROUTER END ===');
